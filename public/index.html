@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Online Code Compiler</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/material-darker.min.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header>
+      <div class="header-copy">
+        <h1>Online Code Compiler</h1>
+        <p>Run sandboxed JavaScript with templates, history, and themes.</p>
+      </div>
+
+      <div class="header-actions">
+        <button id="themeBtn" class="secondary">Toggle theme</button>
+        <div class="stats">
+          <span id="runCount">Runs: 0</span>
+          <span id="lastRun">Last run: never</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="editor-panel">
+        <div class="panel-header">
+          <label for="code">Code Editor</label>
+          <div class="editor-toolbar">
+            <select id="templateSelect" aria-label="Choose a code template">
+              <option value="hello">Hello World</option>
+              <option value="loop">Loop Example</option>
+              <option value="calculator">Calculator</option>
+              <option value="error">Throw Error</option>
+            </select>
+            <button id="insertTemplateBtn" class="secondary">Insert template</button>
+          </div>
+        </div>
+
+        <textarea id="code" spellcheck="false">// Type JavaScript code here
+console.log('Hello from the online compiler!');</textarea>
+
+        <div class="editor-footer">
+          <button id="runBtn" class="primary">Run code</button>
+          <button id="saveSnippetBtn" class="secondary">Save snippet</button>
+          <button id="clearCodeBtn" class="secondary">Clear code</button>
+        </div>
+      </section>
+
+      <section class="output-panel">
+        <div class="panel-header">
+          <div>
+            <div class="output-header">Output</div>
+            <p class="output-subtitle">Sandboxed execution results with type-aware logs.</p>
+          </div>
+          <button id="copyOutputBtn" class="secondary">Copy output</button>
+        </div>
+
+        <div id="errorBadge" class="error-badge hidden" role="status" aria-live="polite"></div>
+
+        <div id="output" class="output-box" aria-live="polite"></div>
+
+        <div class="output-footer">
+          <span id="outputCount">0 entries</span>
+        </div>
+      </section>
+
+      <section class="history-panel">
+        <div class="history-header">Run history</div>
+        <select id="historySelect" size="6" aria-label="Saved code history"></select>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/javascript/javascript.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
