@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Canvas Code Playground</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="title-group">
+          <h1>Canvas Code Playground</h1>
+          <span class="badge">Unique Editor</span>
+        </div>
+        <p>Write and run JavaScript instantly with templates, auto-save, theme toggle, and run history.</p>
+      </header>
+
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <label for="templateSelect">Template</label>
+          <select id="templateSelect">
+            <option value="hello">Hello World</option>
+            <option value="fibonacci">Fibonacci Sequence</option>
+            <option value="dom">DOM Example</option>
+            <option value="event">Event Counter</option>
+          </select>
+        </div>
+
+        <div class="toolbar-right">
+          <button id="themeToggle">Dark Mode</button>
+          <button id="copyButton">Copy Code</button>
+          <button id="runButton">Run Code</button>
+        </div>
+      </div>
+
+      <main>
+        <section class="editor-panel">
+          <div class="section-header">
+            <h2>Editor</h2>
+            <span class="meta-text">Autosaves to browser storage</span>
+          </div>
+          <textarea id="code" spellcheck="false"></textarea>
+        </section>
+
+        <section class="output-panel">
+          <div class="output-header">
+            <div>
+              <h2>Output</h2>
+              <span class="meta-text">Results are captured from console.log and returned values.</span>
+            </div>
+            <button id="clearButton">Clear Output</button>
+          </div>
+          <pre id="output" class="output"></pre>
+          <div class="history-card">
+            <strong>Run Count:</strong> <span id="runCount">0</span>
+            <strong>Last Runs:</strong>
+            <ol id="historyList"></ol>
+          </div>
+        </section>
+      </main>
+
+      <section class="feature-box">
+        <h3>What makes this playground unique?</h3>
+        <ul>
+          <li>Built-in code templates for quick experiments.</li>
+          <li>Auto-save support so your code stays on refresh.</li>
+          <li>Theme toggle for light and dark modes.</li>
+          <li>Output history with run count and last result summary.</li>
+        </ul>
+      </section>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>
