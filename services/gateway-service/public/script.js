@@ -1,3 +1,4 @@
+const gatewayUrl = '';
 const statusOutput = document.getElementById('statusOutput');
 const accountsList = document.getElementById('accountsList');
 const refreshAccountsBtn = document.getElementById('refreshAccountsBtn');
@@ -5,7 +6,7 @@ const createAccountForm = document.getElementById('createAccountForm');
 const transferForm = document.getElementById('transferForm');
 
 async function request(path, options = {}) {
-  const response = await fetch(path, options);
+  const response = await fetch(gatewayUrl + path, options);
   const data = await response.json();
   if (!response.ok) {
     throw new Error(data.error || 'Request failed');
@@ -24,7 +25,7 @@ function renderAccounts(accounts) {
   }
 
   accountsList.innerHTML = accounts
-    .map((account) => `
+    .map(account => `
       <div class="account-card">
         <div><strong>ID:</strong> ${account.id}</div>
         <div><strong>Owner:</strong> ${account.owner}</div>
@@ -46,20 +47,27 @@ async function loadAccounts() {
   }
 }
 
+async function checkHealth() {
+  try {
+    const response = await fetch('/health');
+    if (!response.ok) throw new Error('Gateway unavailable');
+    renderStatus('Gateway service is running.');
+  } catch (error) {
+    renderStatus(`Gateway health check failed: ${error.message}`);
+  }
+}
+
 createAccountForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-  const owner = document.getElementById('ownerName').value.trim();
+  const owner = document.getElementById('ownerName').value;
   const balance = Number(document.getElementById('initialBalance').value);
 
   try {
     await request('/accounts', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ owner, balance }),
     });
-
     renderStatus('Account created successfully.');
     createAccountForm.reset();
     loadAccounts();
@@ -70,19 +78,16 @@ createAccountForm.addEventListener('submit', async (event) => {
 
 transferForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-  const fromAccountId = document.getElementById('fromAccount').value.trim();
-  const toAccountId = document.getElementById('toAccount').value.trim();
+  const fromAccountId = document.getElementById('fromAccount').value;
+  const toAccountId = document.getElementById('toAccount').value;
   const amount = Number(document.getElementById('transferAmount').value);
 
   try {
     await request('/transactions/transfer', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fromAccountId, toAccountId, amount }),
     });
-
     renderStatus('Transfer completed successfully.');
     transferForm.reset();
     loadAccounts();
@@ -94,13 +99,6 @@ transferForm.addEventListener('submit', async (event) => {
 refreshAccountsBtn.addEventListener('click', loadAccounts);
 
 window.addEventListener('load', async () => {
-  try {
-    const response = await fetch('/health');
-    if (!response.ok) throw new Error('Gateway service unavailable');
-    renderStatus('Gateway service is running.');
-  } catch (error) {
-    renderStatus(`Gateway health check failed: ${error.message}`);
-  }
-
+  await checkHealth();
   await loadAccounts();
 });

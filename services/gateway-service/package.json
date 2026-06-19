@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "banking-microservices-demo": "file:../.."
+  }
+}

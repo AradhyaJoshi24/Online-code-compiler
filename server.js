@@ -1,78 +1,69 @@
 const express = require('express');
 const path = require('path');
-const { Script, createContext } = require('vm');
+const cors = require('cors');
+const axios = require('axios');
 
 const app = express();
 const port = process.env.PORT || 3000;
+const accountServiceUrl = process.env.ACCOUNT_SERVICE_URL || 'http://localhost:3001';
+const transactionServiceUrl = process.env.TRANSACTION_SERVICE_URL || 'http://localhost:3002';
 
-app.use(express.json({ limit: '100kb' }));
+app.use(cors());
+app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.post('/run', (req, res) => {
-  const { code } = req.body;
-  if (typeof code !== 'string') {
-    return res.status(400).json({ error: 'Code must be a string.' });
+function forwardError(error, res) {
+  if (error.response && error.response.data) {
+    return res.status(error.response.status || 500).json(error.response.data);
   }
+  return res.status(500).json({ error: error.message || 'Gateway request failed.' });
+}
 
-  if (/^\s*(?:import\s.+|export\s+(?:default|const|let|var|function|class|\{))/m.test(code)) {
-    return res.json({
-      output: [
-        {
-          type: 'error',
-          text: 'ES module syntax is not supported in this sandbox. Remove import/export statements and use plain script code.',
-        },
-      ],
-    });
-  }
+app.get('/health', (req, res) => {
+  res.json({ service: 'gateway-service', status: 'ok' });
+});
 
-  const sandbox = {
-    console: {
-      output: [],
-      log: (...args) => sandbox.console.output.push({ type: 'log', text: args.join(' ') }),
-      error: (...args) => sandbox.console.output.push({ type: 'error', text: args.join(' ') }),
-      warn: (...args) => sandbox.console.output.push({ type: 'warn', text: args.join(' ') }),
-      info: (...args) => sandbox.console.output.push({ type: 'info', text: args.join(' ') }),
-    },
-  };
-
-  const context = createContext(sandbox);
-
-  const getErrorDetails = (error) => {
-    const message = error && error.message ? error.message : String(error);
-    const stack = error && error.stack ? error.stack : '';
-    const match = /user-code\.js:(\d+):(\d+)/.exec(stack);
-    const line = match ? Math.max(1, Number(match[1]) - 1) : null;
-    const column = match ? Number(match[2]) : null;
-    return { message, line, column };
-  };
-
-  const formatErrorOutput = (error, sourceCode) => {
-    const { message, line, column } = getErrorDetails(error);
-    const parts = [message];
-
-    if (line !== null) {
-      parts.push(`Line ${line}${column ? `, column ${column}` : ''}`);
-      const codeLines = sourceCode.split(/\r?\n/);
-      const errorLine = codeLines[line - 1] || '';
-      if (errorLine !== undefined) {
-        parts.push(`> ${line} | ${errorLine}`);
-      }
-    }
-
-    return { text: parts.join(' '), line };
-  };
-
+app.get('/accounts', async (req, res) => {
   try {
-    const wrappedCode = `(function() {\n${code}\n})();`;
-    const script = new Script(wrappedCode, { filename: 'user-code.js', timeout: 1000 });
-    script.runInContext(context, { timeout: 1000 });
-    res.json({ output: sandbox.console.output });
+    const response = await axios.get(`${accountServiceUrl}/accounts`);
+    res.json(response.data);
   } catch (error) {
-    const errorInfo = formatErrorOutput(error, code);
-    res.json({ output: [{ type: 'error', text: errorInfo.text, line: errorInfo.line }] });
+    forwardError(error, res);
   }
 });
 
+app.get('/accounts/:id', async (req, res) => {
+  try {
+    const response = await axios.get(`${accountServiceUrl}/accounts/${req.params.id}`);
+    res.json(response.data);
+  } catch (error) {
+    forwardError(error, res);
+  }
+});
+
+app.post('/accounts', async (req, res) => {
+  try {
+    const response = await axios.post(`${accountServiceUrl}/accounts`, req.body);
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    forwardError(error, res);
+  }
+});
+
+app.post('/transactions/transfer', async (req, res) => {
+  try {
+    const response = await axios.post(`${transactionServiceUrl}/transactions/transfer`, req.body);
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    forwardError(error, res);
+  }
+});
+
+app.use((req, res) => {
+  res.status(404).json({ error: 'Endpoint not found. Use /accounts or /transactions/transfer.' });
+});
+
 app.listen(port, () => {
-  console.log(`Server listening at http://localhost:${port}`);
+  console.log(`Gateway Service listening at http://localhost:${port}`);
+  console.log('Open http://localhost:3000 to use the banking demo UI.');
 });
